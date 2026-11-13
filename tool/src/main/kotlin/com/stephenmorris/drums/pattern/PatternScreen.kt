@@ -12,10 +12,12 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import com.stephenmorris.drums.core.Sound
+import com.stephenmorris.drums.pads.PadsScreen
 import com.stephenmorris.drums.session.OverviewLayout
 import com.stephenmorris.drums.session.PatternSession
 import com.stephenmorris.drums.settings.SettingsScreen
 import com.stephenmorris.drums.sound.SoundScreen
+import com.stephenmorris.drums.ui.DrumsIcons
 import com.thelightphone.sdk.LightScreen
 import com.thelightphone.sdk.SealedLightActivity
 import com.thelightphone.sdk.ui.LightBarButton
@@ -102,7 +104,9 @@ class PatternScreen(sealedActivity: SealedLightActivity, private val uuid: Strin
                         onClick = session::togglePlay,
                         contentDescription = if (isPlaying) "Stop" else "Play",
                     ),
-                    LightBarButton.LightIcon(LightIcons.LIST, onClick = null, contentDescription = "Pads", enabled = false),
+                    LightBarButton.Icon(DrumsIcons.pads(), onClick = {
+                        navigateTo({ PadsScreen(it, session) }) { exit -> exit?.let { goBack(it) } }
+                    }, contentDescription = "Pads"),
                 ),
             )
         }

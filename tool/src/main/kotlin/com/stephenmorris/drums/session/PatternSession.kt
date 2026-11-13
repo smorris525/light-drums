@@ -84,6 +84,17 @@ class PatternSession(
         }
     }
 
+    /**
+     * Record (spec §10): from stopped it counts in from the first bar in view and turns follow on, as Play does;
+     * otherwise the transport records now, cancels a count-in, or stops recording.
+     */
+    fun record() {
+        if (!isPlaying.value) {
+            follow = follow.played()
+        }
+        transport.record(base(), _window.value.firstStep)
+    }
+
     /** A bar dot: shows that bar first; follow stays on only for the playing bar's dot (spec §8). */
     fun showBar(bar: Int) {
         val playingBar = if (isPlaying.value) lastPlayhead?.let { _window.value.bar(it) } else null

@@ -6,6 +6,7 @@ import com.stephenmorris.drums.audio.VoiceEvent
 import com.stephenmorris.drums.core.Level
 import com.stephenmorris.drums.core.MeterId
 import com.stephenmorris.drums.core.Swing
+import com.stephenmorris.drums.core.TakePhase
 import com.stephenmorris.drums.core.PatternData
 import com.stephenmorris.drums.core.Sound
 import com.stephenmorris.drums.core.StepGrid
@@ -220,5 +221,16 @@ class PatternSessionTest {
         session.rename("Verse")
         assertEquals("Verse", saved.single().name)
         assertEquals(Level.HIT, saved.single().steps[Sound.SNARE, 6])
+    }
+
+    // Record from stopped counts in from the first bar in view and turns follow on, as Play does (spec §10).
+    @Test
+    fun recordFromStoppedCountsInAndFollows() {
+        val session = session()
+        session.showBar(1)
+        session.record()
+        assertEquals(TakePhase.COUNTING_IN, transport.takePhase.value)
+        session.playheadMoved(2)
+        assertEquals(0, session.window.value.firstBar)
     }
 }

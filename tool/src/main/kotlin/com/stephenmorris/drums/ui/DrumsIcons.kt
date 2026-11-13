@@ -10,20 +10,41 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.scale
+import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.unit.dp
 import com.thelightphone.sdk.ui.LightThemeTokens
 
 /** An icon drawn on a square [grid], scaled to whatever size it's given, in [color]. */
-private class DrawnIcon(private val grid: Float, private val color: Color, private val draw: DrawScope.(Color) -> Unit) :
-    Painter() {
+private class DrawnIcon(
+    private val grid: Float,
+    private val color: Color,
+    /** Room for an underline under the icon, kept whether or not it's drawn, so the icon doesn't move. */
+    private val underlinable: Boolean = false,
+    private val underlined: Boolean = false,
+    private val draw: DrawScope.(Color) -> Unit,
+) : Painter() {
     override val intrinsicSize: Size = Size.Unspecified
 
     override fun DrawScope.onDraw() {
-        val factor = minOf(size.width, size.height) / grid
-        scale(factor, pivot = Offset.Zero) { draw(color) }
+        val reserve = if (underlinable) UNDERLINE_SPACE.dp.toPx() else 0f
+        val side = minOf(size.width, size.height - reserve)
+        val left = (size.width - side) / 2
+        translate(left, 0f) {
+            scale(side / grid, pivot = Offset.Zero) { draw(color) }
+        }
+        if (underlined) {
+            // A 2 dp line under the icon (spec §10: Click while on, Record while recording).
+            drawRect(color, Offset(left, size.height - 2.dp.toPx()), Size(side, 2.dp.toPx()))
+        }
+    }
+
+    private companion object {
+        /** The underline and the space above it. */
+        const val UNDERLINE_SPACE = 6f
     }
 }
 
@@ -61,10 +82,10 @@ object DrumsIcons {
 
     /** A metronome: a tapering case, its arm swung out to the right, the weight clear of it, on a 40 grid. */
     @Composable
-    fun metronome(): Painter {
+    fun metronome(underlined: Boolean = false): Painter {
         val color = LightThemeTokens.colors.content
-        return remember(color) {
-            DrawnIcon(40f, color) { tint ->
+        return remember(color, underlined) {
+            DrawnIcon(40f, color, underlinable = true, underlined = underlined) { tint ->
                 val case = Path().apply {
                     moveTo(11.5f, 1.5f)
                     lineTo(18.5f, 1.5f)
@@ -82,9 +103,11 @@ object DrumsIcons {
 
     /** Record: a solid circle, a little inside its 24 place, as a solid circle looks bigger than other icons. */
     @Composable
-    fun record(): Painter {
+    fun record(underlined: Boolean = false): Painter {
         val color = LightThemeTokens.colors.content
-        return remember(color) { DrawnIcon(24f, color) { tint -> drawCircle(tint, 11f, Offset(12f, 12f)) } }
+        return remember(color, underlined) {
+            DrawnIcon(24f, color, underlinable = true, underlined = underlined) { tint -> drawCircle(tint, 11f, Offset(12f, 12f)) }
+        }
     }
 
     /** A count-in beat, drawn in record's place: the bottom bar holds only icons alongside four others. */
