@@ -15,7 +15,7 @@ data class PatternData(
     val swing: Swing = Swing.OFF,
     val steps: StepGrid = StepGrid.EMPTY,
 ) {
-    /** The library's meta line, for example "68 bpm · 4/4 · 4 bars" (spec §7). */
+    /** The library's meta line, for example "68 BPM · 4/4 · 4 bars" (spec §7). */
     val libraryMeta: String
         get() = PatternText.libraryMeta(bpm, meter, bars)
 }

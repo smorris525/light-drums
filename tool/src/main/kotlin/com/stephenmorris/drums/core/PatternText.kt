@@ -4,9 +4,9 @@ package com.stephenmorris.drums.core
 object PatternText {
     const val NEW_PATTERN_STEM = "New Pattern"
 
-    /** The library's meta line, for example "68 bpm · 4/4 · 4 bars" (spec §7). Swing isn't shown. */
+    /** The library's meta line, for example "68 BPM · 4/4 · 4 bars" (spec §7). Swing isn't shown. */
     fun libraryMeta(bpm: Int, meter: MeterId, bars: Int): String =
-        "${Tempo.clamped(bpm)} bpm · ${meter.raw} · ${SettingsRows.length(bars)}"
+        "${Tempo.clamped(bpm)} BPM · ${meter.raw} · ${SettingsRows.length(bars)}"
 
     /** The name a rename saves (spec §11): what was typed, trimmed, at any length; an empty result keeps [current]. */
     fun renamed(typed: String, current: String): String = sanitizedTitle(typed) ?: current

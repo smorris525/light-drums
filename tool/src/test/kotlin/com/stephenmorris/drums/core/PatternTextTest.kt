@@ -24,13 +24,13 @@ class PatternTextTest {
 
     @Test
     fun metaLine() {
-        assertEquals("68 bpm · 4/4 · 4 bars", PatternText.libraryMeta(68, MeterId.FOUR_FOUR, 4))
-        assertEquals("92 bpm · 12/8 · 1 bar", PatternText.libraryMeta(92, MeterId.TWELVE_EIGHT, 1))
+        assertEquals("68 BPM · 4/4 · 4 bars", PatternText.libraryMeta(68, MeterId.FOUR_FOUR, 4))
+        assertEquals("92 BPM · 12/8 · 1 bar", PatternText.libraryMeta(92, MeterId.TWELVE_EIGHT, 1))
     }
 
     @Test
     fun metaLineClampsCorruptValues() {
-        assertEquals("300 bpm · 7/8 · 1 bar", PatternText.libraryMeta(9_000, MeterId.SEVEN_EIGHT, 0))
+        assertEquals("300 BPM · 7/8 · 1 bar", PatternText.libraryMeta(9_000, MeterId.SEVEN_EIGHT, 0))
     }
 
     @Test
