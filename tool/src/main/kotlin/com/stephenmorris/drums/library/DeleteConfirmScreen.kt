@@ -61,7 +61,7 @@ class DeleteConfirmScreen(sealedActivity: SealedLightActivity, private val name:
                 }
                 LightBottomBar(
                     items = listOf(
-                        LightBarButton.LightIcon(LightIcons.DENY, onClick = { goBack(false) }, contentDescription = "Cancel"),
+                        LightBarButton.LightIcon(LightIcons.CLOSE, onClick = { goBack(false) }, contentDescription = "Cancel"),
                         null,
                         LightBarButton.LightIcon(LightIcons.ACCEPT, onClick = { goBack(true) }, contentDescription = "Delete"),
                     ),
