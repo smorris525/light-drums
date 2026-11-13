@@ -3,6 +3,7 @@ package com.stephenmorris.drums
 import com.stephenmorris.drums.audio.TickLoop
 import com.stephenmorris.drums.audio.TrackAudioOutput
 import com.stephenmorris.drums.audio.Transport
+import com.stephenmorris.drums.data.ClickPreference
 import com.stephenmorris.drums.data.PatternSaver
 import com.stephenmorris.drums.data.PatternStore
 import com.thelightphone.sdk.SealedLightContext
@@ -21,7 +22,12 @@ import kotlinx.coroutines.withContext
  */
 object Drums {
     /** Everything a screen needs, once it's built. */
-    data class Ready(val store: PatternStore, val transport: Transport, val saver: PatternSaver)
+    data class Ready(
+        val store: PatternStore,
+        val transport: Transport,
+        val saver: PatternSaver,
+        val click: ClickPreference,
+    )
 
     private val scope = MainScope()
     private val mutex = Mutex()
@@ -55,8 +61,10 @@ object Drums {
                 }
             }
         }
+        val click = ClickPreference.open(context)
+        transport.clickMode = click.load()
         scope.launch { TickLoop.run(transport) }
-        return Ready(store, transport, saver)
+        return Ready(store, transport, saver, click)
     }
 
 }
