@@ -254,10 +254,9 @@ class Transport(
         _countInNumber.value = schedule.number(frame)
     }
 
+    /** Starts the output every time: it's idempotent, and one whose writer died must be started again. */
     private fun ensureStarted(): Boolean {
-        if (!outputStarted) {
-            outputStarted = output.start()
-        }
+        outputStarted = output.start()
         return outputStarted
     }
 

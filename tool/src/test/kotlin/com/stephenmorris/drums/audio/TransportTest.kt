@@ -171,4 +171,18 @@ class TransportTest {
         assertTrue(output.events.isEmpty())
         assertNull(transport.playingUuid.value)
     }
+
+    // Review finding 2: an output that stopped by itself (its writer died) is started again on the next sound,
+    // rather than the transport trusting that it's still going.
+    @Test
+    fun startsTheOutputAgainOnTheNextSound() {
+        transport.play(pattern, 0)
+        val starts = output.startCount
+        output.isStarted = false
+        transport.stop()
+        transport.play(pattern, 0)
+        assertEquals(starts + 1, output.startCount)
+        transport.hit(Sound.KICK, Level.HIT, null)
+        assertEquals(starts + 2, output.startCount)
+    }
 }

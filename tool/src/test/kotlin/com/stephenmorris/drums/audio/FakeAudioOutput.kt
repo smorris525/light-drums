@@ -7,6 +7,7 @@ class FakeAudioOutput(override val sampleRate: Int = 48_000) : AudioOutput {
     var startResult = true
     var isStarted = false
     var suspendCount = 0
+    var startCount = 0
     val events = mutableListOf<VoiceEvent>()
 
     val triggers: List<VoiceEvent.Trigger>
@@ -18,6 +19,7 @@ class FakeAudioOutput(override val sampleRate: Int = 48_000) : AudioOutput {
     }
 
     override fun start(): Boolean {
+        startCount += 1
         isStarted = startResult
         return startResult
     }

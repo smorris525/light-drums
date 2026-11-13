@@ -20,6 +20,7 @@ class TrackAudioOutput private constructor(override val sampleRate: Int) : Audio
         limiter = Limiter(sampleRate = sampleRate.toDouble()),
     )
     private val timestamp = AudioTimestamp()
+    private val clock = OutputClock()
     private var track: AudioTrack? = null
     private var writer: Thread? = null
     private var bufferFrames = BLOCK_FRAMES * 2
@@ -37,7 +38,7 @@ class TrackAudioOutput private constructor(override val sampleRate: Int) : Audio
             if (!running || !track.getTimestamp(timestamp)) {
                 return bufferFrames.toLong()
             }
-            val frames = OutputLatency.frames(
+            val frames = clock.latency(
                 renderer.renderedFrames,
                 timestamp.framePosition,
                 timestamp.nanoTime,
@@ -54,13 +55,16 @@ class TrackAudioOutput private constructor(override val sampleRate: Int) : Audio
     override fun send(event: VoiceEvent): Boolean = renderer.send(event)
 
     override fun start(): Boolean {
-        if (running) {
+        if (running && writer?.isAlive == true) {
             return true
         }
+        // A writer that died on a write error (the audio server restarted, say) leaves a dead track: start afresh.
+        tearDown()
         val built = track ?: build() ?: return false
         track = built
         return try {
             built.play()
+            clock.trackStarted(renderer.renderedFrames)
             running = true
             loggedLatency = false
             writer = Thread(::writeLoop, "DrumsAudio").apply { start() }
@@ -71,8 +75,10 @@ class TrackAudioOutput private constructor(override val sampleRate: Int) : Audio
         }
     }
 
-    override fun suspend() {
-        if (!running) {
+    override fun suspend() = tearDown()
+
+    private fun tearDown() {
+        if (!running && writer == null && track == null) {
             return
         }
         running = false
