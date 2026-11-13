@@ -134,7 +134,7 @@ private fun PatternRow(pattern: PatternData, isEditing: Boolean, onOpen: () -> U
         }
         Column {
             LightText(pattern.name, LightTextVariant.Heading)
-            LightText(pattern.libraryMeta, LightTextVariant.Detail, lighten = true)
+            LightText(pattern.libraryMeta, LightTextVariant.Detail)
         }
     }
 }
