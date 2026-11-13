@@ -30,7 +30,7 @@ import com.thelightphone.sdk.ui.gridUnitsAsDp
 
 /** One pattern (spec §8): every sound's steps for the bars in view, and play. Tapping a sound opens it. */
 class PatternScreen(sealedActivity: SealedLightActivity, private val uuid: String) :
-    LightScreen<Unit, PatternViewModel>(sealedActivity) {
+    LightScreen<PatternExit?, PatternViewModel>(sealedActivity) {
 
     override val viewModelClass: Class<PatternViewModel>
         get() = PatternViewModel::class.java
@@ -65,8 +65,12 @@ class PatternScreen(sealedActivity: SealedLightActivity, private val uuid: Strin
                     viewModel.stopPlayback()
                     goBack()
                 }, contentDescription = "Back"),
-                center = LightTopBarCenter.Text(pattern.name),
-                rightButton = LightBarButton.LightIcon(LightIcons.LIST, onClick = null, contentDescription = "Actions"),
+                center = LightTopBarCenter.Text(pattern.name, onClick = {
+                    navigateTo({ RenameScreen(it, session.pattern.value.name) }) { typed -> typed?.let(session::rename) }
+                }),
+                rightButton = LightBarButton.LightIcon(LightIcons.LIST, onClick = {
+                    navigateTo({ ActionsScreen(it, session) }) { exit -> exit?.let { goBack(it) } }
+                }, contentDescription = "Actions"),
             )
             BarDots(window, playhead?.let(window::bar), session::showBar)
             BoxWithConstraints(

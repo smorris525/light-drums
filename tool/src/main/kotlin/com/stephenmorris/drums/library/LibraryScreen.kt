@@ -19,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.stephenmorris.drums.core.PatternData
+import com.stephenmorris.drums.pattern.PatternExit
 import com.stephenmorris.drums.pattern.PatternScreen
 import com.thelightphone.sdk.InitialScreen
 import com.thelightphone.sdk.LightScreen
@@ -67,7 +68,14 @@ class LibraryScreen(sealedActivity: SealedLightActivity) : LightScreen<Unit, Lib
         val isEditing by model.isEditing.collectAsState()
         val scope = rememberCoroutineScope()
 
-        fun open(pattern: PatternData) = navigateTo({ PatternScreen(it, pattern.uuid) })
+        fun open(uuid: String) {
+            navigateTo({ PatternScreen(it, uuid) }) { exit ->
+                // Duplicate hands back the copy to open; a delete just lands here.
+                if (exit is PatternExit.Open) open(exit.uuid)
+            }
+        }
+
+        fun open(pattern: PatternData) = open(pattern.uuid)
 
         fun confirmDelete(pattern: PatternData) = navigateTo({ DeleteConfirmScreen(it, pattern.name) }) { confirmed ->
             if (confirmed) {

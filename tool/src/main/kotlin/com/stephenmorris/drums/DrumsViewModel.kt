@@ -22,6 +22,11 @@ abstract class DrumsViewModel<T>(context: SealedLightContext) : LightViewModel<T
         viewModelScope.launch { _ready.value = Drums.prepare(context) }
     }
 
+    /** Launches [block] in this view model's scope, which outlives the screen's composition. */
+    fun viewModelScopeLaunch(block: suspend () -> Unit) {
+        viewModelScope.launch { block() }
+    }
+
     override fun onAppPause() {
         ready.value?.transport?.suspend()
     }

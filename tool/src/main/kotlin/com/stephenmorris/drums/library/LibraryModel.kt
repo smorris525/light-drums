@@ -2,6 +2,7 @@ package com.stephenmorris.drums.library
 
 import com.stephenmorris.drums.audio.Transport
 import com.stephenmorris.drums.core.PatternData
+import com.stephenmorris.drums.data.PatternSaver
 import com.stephenmorris.drums.data.PatternStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -12,7 +13,13 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 
 /** The library's state and actions (spec §7): the patterns, edit mode, new and delete. */
-class LibraryModel(private val store: PatternStore, private val transport: Transport, scope: CoroutineScope) {
+class LibraryModel(
+    private val store: PatternStore,
+    private val transport: Transport,
+    scope: CoroutineScope,
+    /** Queues deletes behind unfinished saves, so a pattern deleted mid-save stays deleted. */
+    private val saver: PatternSaver? = null,
+) {
     /** Every pattern, oldest first. */
     val patterns: StateFlow<List<PatternData>> = store.patterns.stateIn(scope, SharingStarted.Eagerly, emptyList())
 
@@ -32,8 +39,8 @@ class LibraryModel(private val store: PatternStore, private val transport: Trans
     /** Deletes the pattern, stopping it first if it's playing. Deleting the last pattern leaves edit mode. */
     suspend fun delete(uuid: String) {
         transport.patternDeleted(uuid)
-        store.delete(uuid)
-        if (store.patterns.first().isEmpty()) {
+        if (saver != null) saver.delete(uuid) else store.delete(uuid)
+        if (store.patterns.first().none { it.uuid != uuid }) {
             _isEditing.value = false
         }
     }

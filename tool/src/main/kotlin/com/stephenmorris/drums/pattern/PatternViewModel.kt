@@ -15,7 +15,7 @@ import kotlinx.coroutines.launch
  * The pattern screen's view model: builds the [PatternSession] the pattern and sound screens share, keeps it in step
  * with the store and the playhead, and stops playback on the way back to the library (spec §6).
  */
-class PatternViewModel(context: SealedLightContext, uuid: String) : DrumsViewModel<Unit>(context) {
+class PatternViewModel(context: SealedLightContext, uuid: String) : DrumsViewModel<PatternExit?>(context) {
     private val _session = MutableStateFlow<PatternSession?>(null)
     val session: StateFlow<PatternSession?> = _session.asStateFlow()
 

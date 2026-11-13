@@ -55,4 +55,14 @@ class PatternSaverTest {
         saver.save(first.copy(name = "Last"))
         assertEquals("Last", store.pattern("p").first()?.name)
     }
+
+    // A delete queues behind earlier saves and drops later ones, so a pattern deleted mid-save stays deleted.
+    @Test
+    fun aDeleteStaysDeleted() = runBlocking {
+        saver.save(first)
+        saver.delete("p")
+        saver.save(second)
+        assertEquals(null, store.pattern("p").first())
+        assertTrue(saver.isCurrent(second))
+    }
 }

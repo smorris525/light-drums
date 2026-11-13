@@ -57,8 +57,10 @@ class PatternStore(
     suspend fun delete(uuid: String) = dao.delete(uuid)
 
     /** An independent copy at the bottom of the library, named with the lowest free suffix from 2. */
-    suspend fun duplicate(uuid: String): PatternData? {
-        val source = pattern(uuid).first() ?: return null
+    suspend fun duplicate(uuid: String): PatternData? = pattern(uuid).first()?.let { duplicate(it) }
+
+    /** A copy of [source] as given (the newest edit, which may not have reached the store yet). */
+    suspend fun duplicate(source: PatternData): PatternData {
         val existing = patterns.first()
         val copy = source.copy(
             uuid = UUID.randomUUID().toString(),

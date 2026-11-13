@@ -12,7 +12,7 @@ import kotlinx.coroutines.launch
 /** The library screen's view model: its [LibraryModel] once the store and transport are ready. */
 class LibraryViewModel(context: SealedLightContext) : DrumsViewModel<Unit>(context) {
     val model: StateFlow<LibraryModel?> = ready
-        .map { ready -> ready?.let { LibraryModel(it.store, it.transport, viewModelScope) } }
+        .map { ready -> ready?.let { LibraryModel(it.store, it.transport, viewModelScope, it.saver) } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     /**

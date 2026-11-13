@@ -12,21 +12,43 @@ import kotlinx.coroutines.launch
  * the store emits for an earlier save from the current one.
  */
 class PatternSaver(private val store: PatternStore, scope: CoroutineScope) {
-    private val queue = Channel<PatternData>(Channel.UNLIMITED)
+    private sealed interface Job {
+        data class Save(val pattern: PatternData) : Job
+
+        data class Delete(val uuid: String) : Job
+    }
+
+    private val queue = Channel<Job>(Channel.UNLIMITED)
     private val latest = ConcurrentHashMap<String, PatternData>()
+
+    /** Deleted patterns: saves arriving after the delete are dropped, so nothing can bring one back. */
+    private val deleted = ConcurrentHashMap.newKeySet<String>()
 
     init {
         scope.launch {
-            for (pattern in queue) {
-                store.save(pattern)
+            for (job in queue) {
+                when (job) {
+                    is Job.Save -> store.save(job.pattern)
+                    is Job.Delete -> store.delete(job.uuid)
+                }
             }
         }
     }
 
     /** Queues [pattern] to save. */
     fun save(pattern: PatternData) {
+        if (pattern.uuid in deleted) {
+            return
+        }
         latest[pattern.uuid] = pattern
-        queue.trySend(pattern)
+        queue.trySend(Job.Save(pattern))
+    }
+
+    /** Queues a delete behind any saves already queued for the pattern, and drops any that come after it. */
+    fun delete(uuid: String) {
+        deleted += uuid
+        latest.remove(uuid)
+        queue.trySend(Job.Delete(uuid))
     }
 
     /** The latest copy saved here, or `null` if this pattern hasn't been saved through the saver. */
