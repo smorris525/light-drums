@@ -61,6 +61,35 @@ object DrumsIcons {
      */
     const val UNDERLINABLE_SIZE_UNITS = 2.8f
 
+    /**
+     * Cancel: the SDK's close X, its margin trimmed so it fills its box as the confirm triangle beside it does, on a
+     * 26.2 grid (the X's 6.9 to 33.1 of the SDK's 40).
+     */
+    @Composable
+    fun cancel(): Painter {
+        val color = LightThemeTokens.colors.content
+        return remember(color) {
+            DrawnIcon(26.2f, color) { tint ->
+                val cross = Path().apply {
+                    moveTo(26.2f, 24.1f)
+                    lineTo(15.2f, 13.1f)
+                    lineTo(26.2f, 2.1f)
+                    lineTo(24.1f, 0f)
+                    lineTo(13.1f, 11f)
+                    lineTo(2.1f, 0f)
+                    lineTo(0f, 2.1f)
+                    lineTo(11f, 13.1f)
+                    lineTo(0f, 24.1f)
+                    lineTo(2.1f, 26.2f)
+                    lineTo(13.1f, 15.2f)
+                    lineTo(24.1f, 26.2f)
+                    close()
+                }
+                drawPath(cross, tint)
+            }
+        }
+    }
+
     /** Live pads: 2 x 2 rounded squares out to the edges of a 24 grid. */
     @Composable
     fun pads(): Painter {
