@@ -4,6 +4,7 @@ import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -16,6 +17,8 @@ import androidx.compose.ui.unit.dp
 import com.stephenmorris.drums.core.HoldAccelerator
 import com.thelightphone.sdk.ui.LightIcon
 import com.thelightphone.sdk.ui.LightIconConfiguration
+import com.thelightphone.sdk.ui.LightIcons
+import com.thelightphone.sdk.ui.gridUnitsAsDp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -60,6 +63,19 @@ fun StepArrow(icon: LightIconConfiguration, label: String, visible: Boolean, rep
             ),
         contentAlignment = Alignment.Center,
     ) {
-        if (visible) LightIcon(icon, size = 2.5f, contentDescription = label)
+        if (visible) {
+            // The SDK draws ⌄ and ⌃ as one chevron rotated about the middle of its 30-unit box, but the chevron's
+            // own middle sits 5.44 units off it, so ⌄ draws low and ⌃ high. Shift each back to the middle.
+            val shift = ICON_SIZE.gridUnitsAsDp() * (5.44f / 30f)
+            val offset = when (icon) {
+                LightIcons.DOWN -> -shift
+                LightIcons.UP -> shift
+                else -> 0.dp
+            }
+            LightIcon(icon, size = ICON_SIZE, contentDescription = label, modifier = Modifier.offset(y = offset))
+        }
     }
 }
+
+/** The arrows' size, in grid units. */
+private const val ICON_SIZE = 2.5f
