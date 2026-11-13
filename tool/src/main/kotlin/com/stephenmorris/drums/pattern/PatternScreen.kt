@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import com.stephenmorris.drums.core.Sound
 import com.stephenmorris.drums.session.OverviewLayout
 import com.stephenmorris.drums.session.PatternSession
+import com.stephenmorris.drums.settings.SettingsScreen
 import com.stephenmorris.drums.sound.SoundScreen
 import com.thelightphone.sdk.LightScreen
 import com.thelightphone.sdk.SealedLightActivity
@@ -87,7 +88,11 @@ class PatternScreen(sealedActivity: SealedLightActivity, private val uuid: Strin
             }
             LightBottomBar(
                 items = listOf(
-                    LightBarButton.LightIcon(LightIcons.SETTINGS, onClick = null, contentDescription = "Settings", enabled = false),
+                    LightBarButton.LightIcon(
+                        LightIcons.SETTINGS,
+                        onClick = { navigateTo({ SettingsScreen(it, session) }) },
+                        contentDescription = "Settings",
+                    ),
                     LightBarButton.LightIcon(
                         if (isPlaying) LightIcons.STOP else LightIcons.PLAY,
                         onClick = session::togglePlay,
