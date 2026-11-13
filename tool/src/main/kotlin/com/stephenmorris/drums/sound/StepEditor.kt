@@ -124,7 +124,7 @@ fun StepEditor(
                     .size(SoundEditorLayout.LABEL_WIDTH.dp, layout.stepSize.dp),
                 contentAlignment = Alignment.CenterStart,
             ) {
-                LightText("${row.beat + 1}", LightTextVariant.Detail, lighten = true)
+                LightText("${row.beat + 1}", LightTextVariant.Detail)
             }
         }
         Canvas(Modifier.fillMaxSize()) {
