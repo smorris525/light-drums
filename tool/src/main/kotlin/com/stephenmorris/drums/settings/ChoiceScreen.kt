@@ -1,5 +1,14 @@
 package com.stephenmorris.drums.settings
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+import com.thelightphone.sdk.ui.LightThemeTokens
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -48,17 +57,34 @@ class ChoiceScreen(sealedActivity: SealedLightActivity, private val session: Pat
         SettingsPage(kind.title, session, onBack = { goBack() }) {
             Column(modifier = Modifier.fillMaxWidth().padding(vertical = 0.5f.gridUnitsAsDp())) {
                 for ((label, isCurrent, pick) in options) {
-                    LightText(
-                        label,
-                        LightTextVariant.Copy,
-                        underline = isCurrent,
+                    Box(
                         modifier = Modifier
                             .fillMaxWidth()
                             .lightClickable(onClickLabel = label, onClick = pick)
                             .padding(horizontal = 1f.gridUnitsAsDp(), vertical = 0.4f.gridUnitsAsDp()),
-                    )
+                    ) {
+                        UnderlinedText(label, isCurrent)
+                    }
                 }
             }
         }
+    }
+}
+
+/**
+ * The choice's label, underlined while it's the current one: a 2 dp line as wide as the text, a little below it, as
+ * LightOS marks a choice. The SDK's own underline is the font's hairline.
+ */
+@Composable
+private fun UnderlinedText(text: String, underlined: Boolean) {
+    Column(modifier = Modifier.width(IntrinsicSize.Max)) {
+        LightText(text, LightTextVariant.Copy)
+        Spacer(Modifier.height(3.dp))
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .height(2.dp)
+                .background(if (underlined) LightThemeTokens.colors.content else Color.Transparent),
+        )
     }
 }
