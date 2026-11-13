@@ -133,7 +133,7 @@ private fun PatternRow(pattern: PatternData, isEditing: Boolean, onOpen: () -> U
             .lightClickable(enabled = !isEditing, onClick = onOpen)
             .padding(vertical = 0.5f.gridUnitsAsDp()),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(0.5f.gridUnitsAsDp()),
+        horizontalArrangement = Arrangement.spacedBy(0.8f.gridUnitsAsDp()),
     ) {
         if (isEditing) {
             Box(
