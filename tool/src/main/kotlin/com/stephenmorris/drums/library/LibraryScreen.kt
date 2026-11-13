@@ -91,6 +91,7 @@ class LibraryScreen(sealedActivity: SealedLightActivity) : LightScreen<Unit, Lib
         )
         Column(modifier = Modifier.fillMaxSize()) {
             LightScrollView(
+                scrollState = viewModel.scrollState,
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
