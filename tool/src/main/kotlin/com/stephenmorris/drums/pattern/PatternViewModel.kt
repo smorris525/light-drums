@@ -23,7 +23,7 @@ class PatternViewModel(context: SealedLightContext, uuid: String) : DrumsViewMod
         viewModelScope.launch {
             val ready = ready.filterNotNull().first()
             val initial = ready.store.pattern(uuid).filterNotNull().first()
-            val session = PatternSession(initial, ready.transport, viewModelScope, ready.saver::save)
+            val session = PatternSession(initial, ready.transport, viewModelScope, { ready.saver.latest(uuid) }, ready.saver::save)
             _session.value = session
             launch {
                 // The store emits each save after it lands, by which time newer edits may exist: only the latest

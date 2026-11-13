@@ -4,6 +4,12 @@ import com.stephenmorris.drums.audio.Transport
 import com.stephenmorris.drums.core.BarWindow
 import com.stephenmorris.drums.core.Follow
 import com.stephenmorris.drums.core.Level
+import com.stephenmorris.drums.core.MeterId
+import com.stephenmorris.drums.core.MeterLayout
+import com.stephenmorris.drums.core.PatternText
+import com.stephenmorris.drums.core.SettingsSnapshot
+import com.stephenmorris.drums.core.Swing
+import com.stephenmorris.drums.core.Tempo
 import com.stephenmorris.drums.core.PatternData
 import com.stephenmorris.drums.core.Sound
 import com.stephenmorris.drums.core.StepGrid
@@ -26,6 +32,8 @@ class PatternSession(
     initial: PatternData,
     private val transport: Transport,
     scope: CoroutineScope,
+    /** The newest copy saved, from any source (a recorded hit, say): every edit builds on it, if there is one. */
+    private val latest: () -> PatternData? = { null },
     private val save: (PatternData) -> Unit,
 ) {
     private val _pattern = MutableStateFlow(initial)
@@ -49,6 +57,9 @@ class PatternSession(
 
     private var follow = Follow()
     private var stroke: StepPaintStroke? = null
+
+    /** Taken when Settings opens; `null` while it's closed. Meter and bar changes come from it (spec §5). */
+    private var settings: SettingsSnapshot? = null
 
     /** The last step the playhead reached while playing: what a bar dot compares against. */
     private var lastPlayhead: Int? = null
@@ -89,22 +100,22 @@ class PatternSession(
     }
 
     /** A tap toggles rest and hit; tapping an accent clears it. */
-    fun tap(sound: Sound, step: Int) = edit(_pattern.value.steps.toggled(sound, step))
+    fun tap(sound: Sound, step: Int) = edit(base().steps.toggled(sound, step))
 
     /** A hold sets an accent. */
-    fun accent(sound: Sound, step: Int) = edit(_pattern.value.steps.with(sound, step, Level.ACCENT))
+    fun accent(sound: Sound, step: Int) = edit(base().steps.with(sound, step, Level.ACCENT))
 
     fun beginPaint(sound: Sound, step: Int) {
         follow = follow.edited()
-        stroke = StepPaintStroke(_pattern.value.steps[sound, step])
+        stroke = StepPaintStroke(base().steps[sound, step])
     }
 
     fun paint(sound: Sound, step: Int) {
         val stroke = stroke ?: return
-        val steps = _pattern.value.steps
+        val steps = base().steps
         val painted = stroke.apply(sound, step, steps)
         if (painted !== steps) {
-            commit(painted)
+            commit(base().copy(steps = painted))
         }
     }
 
@@ -112,22 +123,79 @@ class PatternSession(
         stroke = null
     }
 
+    /** Opens the settings session: meter and bar changes are computed from this moment until [closeSettings]. */
+    fun openSettings() {
+        val pattern = base()
+        settings = SettingsSnapshot(pattern.meter, pattern.bars, pattern.steps)
+    }
+
+    /** Commits the settings session: hits beyond the pattern's length are trimmed (spec §5). */
+    fun closeSettings() {
+        val pattern = base()
+        val length = pattern.meter.layout.stepsPerBar * MeterLayout.clampedBars(pattern.bars)
+        val trimmed = pattern.steps.trimmed(length)
+        if (trimmed != pattern.steps) {
+            commit(pattern.copy(steps = trimmed))
+        }
+        settings = null
+    }
+
+    fun setBpm(bpm: Int) {
+        val pattern = base()
+        val clamped = Tempo.clamped(bpm)
+        if (clamped != pattern.bpm) commit(pattern.copy(bpm = clamped))
+    }
+
+    fun setSwing(swing: Swing) {
+        val pattern = base()
+        if (swing != pattern.swing) commit(pattern.copy(swing = swing))
+    }
+
+    fun setMeter(meter: MeterId) {
+        val pattern = base()
+        if (meter != pattern.meter) reshape(pattern, meter, pattern.bars)
+    }
+
+    fun setBars(bars: Int) {
+        val pattern = base()
+        val clamped = MeterLayout.clampedBars(bars)
+        if (clamped != pattern.bars) reshape(pattern, pattern.meter, clamped)
+    }
+
+    /** A rename (spec §11): trimmed; an empty name keeps the old one. */
+    fun rename(typed: String) {
+        val pattern = base()
+        val name = PatternText.renamed(typed, pattern.name)
+        if (name != pattern.name) commit(pattern.copy(name = name))
+    }
+
+    /** The steps for the meter and bars now chosen, from the settings snapshot, opening one if none is open. */
+    private fun reshape(pattern: PatternData, meter: MeterId, bars: Int) {
+        val snapshot = settings ?: SettingsSnapshot(pattern.meter, pattern.bars, pattern.steps).also { settings = it }
+        commit(pattern.copy(meter = meter, bars = bars, steps = snapshot.steps(meter, bars)))
+    }
+
+    /** The newest copy to edit: the newest saved, if the saver has one, otherwise this session's. */
+    private fun base(): PatternData = latest() ?: _pattern.value
+
     private fun edit(steps: StepGrid) {
         follow = follow.edited()
-        if (steps != _pattern.value.steps) {
-            commit(steps)
+        val pattern = base()
+        if (steps != pattern.steps) {
+            commit(pattern.copy(steps = steps))
         }
     }
 
-    private fun commit(steps: StepGrid) {
-        val edited = _pattern.value.copy(steps = steps)
+    private fun commit(edited: PatternData) {
         _pattern.value = edited
         save(edited)
         transport.update(edited)
+        updateWindow()
     }
 
     private fun updateWindow() {
         _window.value = windowFor(_pattern.value)
+        firstBar = _window.value.firstBar
     }
 
     private fun windowFor(pattern: PatternData) = BarWindow.of(pattern.meter, pattern.bars, firstBar)
