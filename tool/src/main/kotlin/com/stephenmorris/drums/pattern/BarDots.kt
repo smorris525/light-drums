@@ -18,12 +18,16 @@ import com.stephenmorris.drums.core.BarWindow
 import com.thelightphone.sdk.ui.LightIcon
 import com.thelightphone.sdk.ui.LightIcons
 import com.thelightphone.sdk.ui.LightThemeTokens
+import com.thelightphone.sdk.ui.gridUnitsAsDp
 import com.thelightphone.sdk.ui.lightClickable
 
 /**
  * One dot per bar (spec §8), shown when there's more than one: filled for the bars in view. A short line marks the
  * playing bar when it's out of view. Tapping a dot shows that bar first.
  */
+/** The SDK's select dot is a 22-unit vector whose circle (radius 9, stroke 2) spans 20 units: the line matches it. */
+private const val DOT_WIDTH_GRID_UNITS = 20f / 22f
+
 @Composable
 fun BarDots(window: BarWindow, playingBar: Int?, onTap: (Int) -> Unit) {
     if (window.bars <= 1) {
@@ -48,7 +52,7 @@ fun BarDots(window: BarWindow, playingBar: Int?, onTap: (Int) -> Unit) {
                 val showsPlaying = bar == playingBar && bar !in window.barRange
                 Box(
                     Modifier
-                        .size(width = 9.dp, height = 2.dp)
+                        .size(width = DOT_WIDTH_GRID_UNITS.gridUnitsAsDp(), height = 2.dp)
                         .background(if (showsPlaying) LightThemeTokens.colors.content else LightThemeTokens.colors.background),
                 )
             }
