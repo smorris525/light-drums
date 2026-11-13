@@ -13,7 +13,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import com.stephenmorris.drums.DrumsViewModel
-import com.stephenmorris.drums.ui.DrumsIcons
 import com.thelightphone.sdk.LightScreen
 import com.thelightphone.sdk.SealedLightActivity
 import com.thelightphone.sdk.SealedLightContext
@@ -62,7 +61,7 @@ class DeleteConfirmScreen(sealedActivity: SealedLightActivity, private val name:
                 }
                 LightBottomBar(
                     items = listOf(
-                        LightBarButton.Icon(DrumsIcons.cancel(), onClick = { goBack(false) }, contentDescription = "Cancel"),
+                        LightBarButton.LightIcon(LightIcons.CLOSE, onClick = { goBack(false) }, contentDescription = "Cancel"),
                         null,
                         LightBarButton.LightIcon(LightIcons.ACCEPT, onClick = { goBack(true) }, contentDescription = "Delete"),
                     ),
