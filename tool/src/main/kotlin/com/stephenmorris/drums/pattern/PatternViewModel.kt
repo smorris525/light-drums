@@ -19,24 +19,17 @@ class PatternViewModel(context: SealedLightContext, uuid: String) : DrumsViewMod
     private val _session = MutableStateFlow<PatternSession?>(null)
     val session: StateFlow<PatternSession?> = _session.asStateFlow()
 
-    /** Saves still under way. The store's copy lags them, so it isn't taken back into the session meanwhile. */
-    private var pendingSaves = 0
-
     init {
         viewModelScope.launch {
             val ready = ready.filterNotNull().first()
             val initial = ready.store.pattern(uuid).filterNotNull().first()
-            val session = PatternSession(initial, ready.transport, viewModelScope) { edited ->
-                pendingSaves += 1
-                viewModelScope.launch {
-                    ready.store.save(edited)
-                    pendingSaves -= 1
-                }
-            }
+            val session = PatternSession(initial, ready.transport, viewModelScope, ready.saver::save)
             _session.value = session
             launch {
+                // The store emits each save after it lands, by which time newer edits may exist: only the latest
+                // copy saved is taken back.
                 ready.store.pattern(uuid).filterNotNull().collect { stored ->
-                    if (pendingSaves == 0) session.refresh(stored)
+                    if (ready.saver.isCurrent(stored)) session.refresh(stored)
                 }
             }
             launch {
@@ -50,8 +43,12 @@ class PatternViewModel(context: SealedLightContext, uuid: String) : DrumsViewMod
         ready.value?.transport?.stop()
     }
 
-    override fun onBackPressed(): Boolean {
+    /**
+     * The screen was removed: back to the library, by the top bar or the system back key, which reaches the activity
+     * without asking the view model. Covering the screen with the sound screen doesn't clear it.
+     */
+    override fun onCleared() {
         stopPlayback()
-        return false
+        super.onCleared()
     }
 }

@@ -1,15 +1,15 @@
 package com.stephenmorris.drums
 
+import com.stephenmorris.drums.audio.TickLoop
 import com.stephenmorris.drums.audio.TrackAudioOutput
 import com.stephenmorris.drums.audio.Transport
+import com.stephenmorris.drums.data.PatternSaver
 import com.stephenmorris.drums.data.PatternStore
 import com.thelightphone.sdk.SealedLightContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.NonCancellable
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -21,7 +21,7 @@ import kotlinx.coroutines.withContext
  */
 object Drums {
     /** Everything a screen needs, once it's built. */
-    data class Ready(val store: PatternStore, val transport: Transport)
+    data class Ready(val store: PatternStore, val transport: Transport, val saver: PatternSaver)
 
     private val scope = MainScope()
     private val mutex = Mutex()
@@ -45,27 +45,18 @@ object Drums {
             val store = PatternStore.open(context).apply { seedIfNeeded() }
             store to TrackAudioOutput.create()
         }
+        val saver = PatternSaver(store, scope)
         val transport = withContext(Dispatchers.Main) {
             Transport(output) { uuid, steps ->
-                // A recorded hit: save the transport's grid onto the stored pattern.
+                // A recorded hit: save the transport's grid onto the latest copy of the pattern.
                 scope.launch {
-                    store.pattern(uuid).first()?.let { store.save(it.copy(steps = steps)) }
+                    val current = saver.latest(uuid) ?: store.pattern(uuid).first() ?: return@launch
+                    saver.save(current.copy(steps = steps))
                 }
             }
         }
-        scope.launch {
-            while (isActive) {
-                transport.tick()
-                val busy = transport.playingUuid.value != null || transport.takePhase.value != null
-                delay(if (busy) BUSY_TICK_MS else IDLE_TICK_MS)
-            }
-        }
-        return Ready(store, transport)
+        scope.launch { TickLoop.run(transport) }
+        return Ready(store, transport, saver)
     }
 
-    /** How often the transport schedules ahead while playing or counting in. */
-    private const val BUSY_TICK_MS = 10L
-
-    /** How often it checks for releasing audio while stopped. */
-    private const val IDLE_TICK_MS = 1_000L
 }
