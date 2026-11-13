@@ -134,6 +134,7 @@ class PadsScreen(sealedActivity: SealedLightActivity, private val session: Patte
                     DrumsIcons.metronome(underlined = clickMode == ClickMode.REC),
                     onClick = viewModel::toggleClick,
                     contentDescription = "Click",
+                    sizeUnits = DrumsIcons.UNDERLINABLE_SIZE_UNITS,
                 ),
                 LightBarButton.LightIcon(
                     if (isPlaying) LightIcons.STOP else LightIcons.PLAY,
@@ -144,6 +145,7 @@ class PadsScreen(sealedActivity: SealedLightActivity, private val session: Patte
                     count?.let { DrumsIcons.countIn(it) } ?: DrumsIcons.record(underlined = phase == TakePhase.RECORDING),
                     onClick = session::record,
                     contentDescription = "Record",
+                    sizeUnits = DrumsIcons.UNDERLINABLE_SIZE_UNITS,
                 ),
                 LightBarButton.Icon(DrumsIcons.stepGrid(), onClick = { goBack(null) }, contentDescription = "Step grid"),
             ),

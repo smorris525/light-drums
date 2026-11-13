@@ -22,7 +22,7 @@ import com.thelightphone.sdk.ui.LightThemeTokens
 private class DrawnIcon(
     private val grid: Float,
     private val color: Color,
-    /** Room for an underline under the icon, kept whether or not it's drawn, so the icon doesn't move. */
+    /** Whether the icon keeps room for an underline, drawn or not, so it doesn't move. */
     private val underlinable: Boolean = false,
     private val underlined: Boolean = false,
     private val draw: DrawScope.(Color) -> Unit,
@@ -30,26 +30,37 @@ private class DrawnIcon(
     override val intrinsicSize: Size = Size.Unspecified
 
     override fun DrawScope.onDraw() {
-        val reserve = if (underlinable) UNDERLINE_SPACE.dp.toPx() else 0f
-        val side = minOf(size.width, size.height - reserve)
+        // An underlinable icon is given a box UNDERLINABLE_SIZE_UNITS across (see [DrumsIcons.UNDERLINABLE_SIZE_UNITS])
+        // and draws itself at its neighbours' size in the middle of it: the same size and centre line as they have,
+        // with room for the underline below whether it's drawn or not, so nothing moves.
+        val box = minOf(size.width, size.height)
+        val side = if (underlinable) box * BAR_ICON_UNITS / DrumsIcons.UNDERLINABLE_SIZE_UNITS else box
         val left = (size.width - side) / 2
-        translate(left, 0f) {
+        val top = (size.height - side) / 2
+        translate(left, top) {
             scale(side / grid, pivot = Offset.Zero) { draw(color) }
         }
         if (underlined) {
             // A 2 dp line under the icon (spec §10: Click while on, Record while recording).
-            drawRect(color, Offset(left, size.height - 2.dp.toPx()), Size(side, 2.dp.toPx()))
+            val gap = (size.height - side) / 2
+            drawRect(color, Offset(left, top + side + gap / 2 - 1.dp.toPx()), Size(side, 2.dp.toPx()))
         }
     }
 
     private companion object {
-        /** The underline and the space above it. */
-        const val UNDERLINE_SPACE = 6f
+        /** A bar icon's size, in grid units: the SDK's. */
+        const val BAR_ICON_UNITS = 2f
     }
 }
 
 /** Drums' own icons, beside the SDK's [com.thelightphone.sdk.ui.LightIcons]. */
 object DrumsIcons {
+    /**
+     * The box, in grid units, to give an underlinable icon (metronome, record) in a bar: the SDK's 2 units for the
+     * icon, plus room above and below for its underline.
+     */
+    const val UNDERLINABLE_SIZE_UNITS = 2.8f
+
     /** Live pads: 2 x 2 rounded squares out to the edges of a 24 grid. */
     @Composable
     fun pads(): Painter {
