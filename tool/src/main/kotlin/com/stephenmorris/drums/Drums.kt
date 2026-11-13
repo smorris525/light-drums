@@ -53,13 +53,9 @@ object Drums {
         }
         val saver = PatternSaver(store, scope)
         val transport = withContext(Dispatchers.Main) {
-            Transport(output) { uuid, steps ->
-                // A recorded hit: save the transport's grid onto the latest copy of the pattern.
-                scope.launch {
-                    val current = saver.latest(uuid) ?: store.pattern(uuid).first() ?: return@launch
-                    saver.save(current.copy(steps = steps))
-                }
-            }
+            // A recorded hit: saved at once, on the main thread, as the transport's whole copy (every hit so far and
+            // every edit it was sent), so two hits together can't each save a copy missing the other.
+            Transport(output) { recorded -> saver.save(recorded) }
         }
         val click = ClickPreference.open(context)
         transport.clickMode = click.load()

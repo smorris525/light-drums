@@ -23,7 +23,7 @@ import kotlin.test.assertTrue
 class PatternSessionTest {
     private val scope = CoroutineScope(Dispatchers.Unconfined)
     private val output = FakeAudioOutput()
-    private val transport = Transport(output) { _, _ -> }
+    private val transport = Transport(output) {}
     private val saved = mutableListOf<PatternData>()
     private val twoBars = PatternData(uuid = "p", createdAt = 0, bpm = 120, bars = 2)
 
@@ -204,13 +204,25 @@ class PatternSessionTest {
         val session = session(twoBars.copy(bars = 4, steps = StepGrid.EMPTY.with(Sound.KICK, 0, Level.ACCENT)))
         session.showBar(3)
         session.togglePlay()
+        // Play has reached the speaker: step 48, bar 4's first, is sounding.
+        output.renderedFrames += 1_000
+        transport.tick()
+        assertEquals(48, transport.currentStep.value)
         session.setBars(2)
         assertEquals(1, session.window.value.firstBar)
-        // The transport has the 2-bar pattern: a stop and replay schedules from bar 2's first step (16).
         assertEquals(2, session.pattern.value.bars)
-        output.renderedFrames += 6_000
-        transport.tick()
+        // The transport plays the 2-bar pattern: after the step sounding at the change, every step it reaches is
+        // inside its 32 steps.
+        val sounding = transport.currentStep.value
+        val reached = mutableListOf<Int>()
+        repeat(80) {
+            output.renderedFrames += 3_000
+            transport.tick()
+            transport.currentStep.value?.let { if (it != sounding && it !in reached) reached += it }
+        }
         assertTrue(session.isPlaying.value)
+        assertTrue(reached.isNotEmpty())
+        assertTrue(reached.all { it < 32 }, "steps reached: $reached")
     }
 
     // A hit recorded through the saver, not yet back from the store, survives a rename.

@@ -17,7 +17,7 @@ class TickLoopTest {
     @Test
     fun playWakesTheLoopAtOnce() = runBlocking {
         val output = FakeAudioOutput()
-        val transport = Transport(output) { _, _ -> }
+        val transport = Transport(output) {}
         val pattern = PatternData(
             uuid = "p",
             createdAt = 0,

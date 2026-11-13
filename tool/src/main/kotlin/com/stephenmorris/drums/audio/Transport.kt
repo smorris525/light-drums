@@ -11,7 +11,6 @@ import com.stephenmorris.drums.core.PlaybackScheduler
 import com.stephenmorris.drums.core.PlayheadHistory
 import com.stephenmorris.drums.core.RecordControl
 import com.stephenmorris.drums.core.Sound
-import com.stephenmorris.drums.core.StepGrid
 import com.stephenmorris.drums.core.SuppressedHits
 import com.stephenmorris.drums.core.Take
 import com.stephenmorris.drums.core.TakePhase
@@ -30,7 +29,8 @@ import kotlinx.coroutines.flow.asStateFlow
 class Transport(
     private val output: AudioOutput,
     private val nowMillis: () -> Long = System::currentTimeMillis,
-    private val onRecorded: (uuid: String, steps: StepGrid) -> Unit,
+    /** A recorded hit changed the pattern: the transport's whole copy, with every hit and edit so far. */
+    private val onRecorded: (PatternData) -> Unit,
 ) {
     private val _playingUuid = MutableStateFlow<String?>(null)
     private val _currentStep = MutableStateFlow<Int?>(null)
@@ -121,8 +121,9 @@ class Transport(
         if (!recorded.changed) {
             return
         }
-        replacePattern(current.copy(steps = steps))
-        onRecorded(current.uuid, steps)
+        val edited = current.copy(steps = steps)
+        replacePattern(edited)
+        onRecorded(edited)
     }
 
     /** The latest copy of [pattern] after an edit. Applies from the next unscheduled step if it's playing. */

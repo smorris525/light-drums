@@ -51,7 +51,7 @@ class KitExportTest {
             override fun start() = true
             override fun suspend() = Unit
         }
-        val transport = Transport(output) { _, _ -> }
+        val transport = Transport(output) {}
         transport.play(SamplePatterns.seeded(0)[0], 0)
         val mix = FloatArray(8 * SAMPLE_RATE.toInt())
         val block = FloatArray(480)

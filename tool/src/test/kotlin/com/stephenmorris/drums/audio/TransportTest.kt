@@ -15,8 +15,8 @@ import kotlin.test.assertTrue
 class TransportTest {
     private val output = FakeAudioOutput()
     private var now = 1_000L
-    private val recorded = mutableListOf<Pair<String, StepGrid>>()
-    private val transport = Transport(output, { now }) { uuid, steps -> recorded += uuid to steps }
+    private val recorded = mutableListOf<PatternData>()
+    private val transport = Transport(output, { now }) { recorded += it }
     private val pattern = PatternData(uuid = "p", createdAt = 0, bpm = 120, steps = StepGrid.EMPTY.with(Sound.KICK, 0, Level.ACCENT))
 
     /** Moves the clock to [frame] in 3,000-frame ticks, as the 10 ms loop would. */
@@ -106,8 +106,8 @@ class TransportTest {
         runTo(stepFrame(4) + 3_000 + 100)
         transport.hit(Sound.SNARE, Level.ACCENT, pattern)
         assertEquals(1, recorded.size)
-        assertEquals("p", recorded[0].first)
-        assertEquals(Level.ACCENT, recorded[0].second[Sound.SNARE, 4])
+        assertEquals("p", recorded[0].uuid)
+        assertEquals(Level.ACCENT, recorded[0].steps[Sound.SNARE, 4])
         transport.hit(Sound.SNARE, Level.ACCENT, pattern)
         assertEquals(1, recorded.size)
     }
@@ -184,5 +184,23 @@ class TransportTest {
         assertEquals(starts + 1, output.startCount)
         transport.hit(Sound.KICK, Level.HIT, null)
         assertEquals(starts + 2, output.startCount)
+    }
+
+    // Review finding: two pads hit at once each saved their own copy, rebuilt asynchronously, and the later save
+    // could drop the other hit. Each recorded hit now hands over the transport's whole pattern: every hit so far and
+    // every edit sent through update().
+    @Test
+    fun recordedHitsHandOverTheWholePattern() {
+        transport.play(pattern, 0)
+        transport.record(pattern, 0)
+        runTo(stepFrame(4) + 100)
+        transport.update(pattern.copy(name = "Verse"))
+        transport.hit(Sound.SNARE, Level.HIT, pattern)
+        transport.hit(Sound.HAT, Level.HIT, pattern)
+        val last = recorded.last()
+        assertEquals("Verse", last.name)
+        assertEquals(Level.HIT, last.steps[Sound.SNARE, 4])
+        assertEquals(Level.HIT, last.steps[Sound.HAT, 4])
+        assertEquals(Level.ACCENT, last.steps[Sound.KICK, 0])
     }
 }

@@ -159,6 +159,7 @@ class PadsScreen(sealedActivity: SealedLightActivity, private val session: Patte
         val lit = remember { mutableStateMapOf<Sound, Long>() }
         val scope = rememberCoroutineScope()
         val measurer = rememberTextMeasurer()
+        val touches = remember(width, height, gap) { PadTouches { x, y -> PadGrid.padAt(x, y, width, height, gap) } }
         // Copy's size, scaled for the screen as LightText scales it.
         val startSize = LightThemeTokens.typography.copy.fontSize.value.designVerticalPxToSp().value
         val style = LightThemeTokens.typography.copy.copy(lineHeight = TextUnit.Unspecified)
@@ -180,24 +181,22 @@ class PadsScreen(sealedActivity: SealedLightActivity, private val session: Patte
             modifier = Modifier
                 .fillMaxSize()
                 .pointerInteropFilter { event ->
-                    val action = event.actionMasked
-                    if (action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_POINTER_DOWN) {
-                        val index = event.actionIndex
-                        val sound = PadGrid.padAt(
-                            event.getX(index) / density.density,
-                            event.getY(index) / density.density,
-                            width,
-                            height,
-                            gap,
-                        )
-                        if (sound != null) {
-                            onHit(sound, event.getTouchMajor(index) / density.density, event.getPressure(index))
-                            val token = System.nanoTime()
-                            lit[sound] = token
-                            scope.launch {
-                                delay(FLASH_MS)
-                                if (lit[sound] == token) lit.remove(sound)
-                            }
+                    val index = event.actionIndex
+                    val x = event.getX(index) / density.density
+                    val y = event.getY(index) / density.density
+                    val sound = when (event.actionMasked) {
+                        MotionEvent.ACTION_DOWN, MotionEvent.ACTION_POINTER_DOWN ->
+                            touches.down(event.getPointerId(index), x, y)
+                        MotionEvent.ACTION_MOVE -> touches.move(event.getPointerId(index), x, y)
+                        else -> null
+                    }
+                    if (sound != null) {
+                        onHit(sound, event.getTouchMajor(index) / density.density, event.getPressure(index))
+                        val token = System.nanoTime()
+                        lit[sound] = token
+                        scope.launch {
+                            delay(FLASH_MS)
+                            if (lit[sound] == token) lit.remove(sound)
                         }
                     }
                     true

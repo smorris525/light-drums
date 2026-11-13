@@ -40,7 +40,10 @@ object PadGrid {
     }
 }
 
-/** Which pad each touch plays: only a touch's down plays one; moving onto another pad plays nothing. */
+/**
+ * Which pad each touch plays, as the pads screen asks it for every touch-down and move: only a touch's down plays a
+ * pad; sliding onto another pad plays nothing (spec §10).
+ */
 class PadTouches(private val padAt: (x: Float, y: Float) -> Sound?) {
     fun down(pointer: Int, x: Float, y: Float): Sound? = padAt(x, y)
 

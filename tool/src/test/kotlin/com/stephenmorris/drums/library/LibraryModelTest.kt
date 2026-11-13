@@ -20,7 +20,7 @@ class LibraryModelTest {
     private val scope = CoroutineScope(Dispatchers.Unconfined)
     private var seeded = false
     private val store = PatternStore(FakePatternDao(), { seeded }, { seeded = true }, { 1_000 })
-    private val transport = Transport(FakeAudioOutput()) { _, _ -> }
+    private val transport = Transport(FakeAudioOutput()) {}
     private val model = LibraryModel(store, transport, scope)
 
     @AfterTest
