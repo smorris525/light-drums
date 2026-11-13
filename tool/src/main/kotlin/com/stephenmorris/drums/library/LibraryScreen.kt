@@ -4,20 +4,21 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import com.stephenmorris.drums.core.PatternData
 import com.stephenmorris.drums.pattern.PatternExit
 import com.stephenmorris.drums.pattern.PatternScreen
@@ -119,12 +120,16 @@ class LibraryScreen(sealedActivity: SealedLightActivity) : LightScreen<Unit, Lib
     }
 }
 
-/** One pattern: its name and meta line. In edit mode, a delete button sits before it, and tapping the row does nothing. */
+/**
+ * One pattern: its name and meta line. In edit mode, a delete button sits before it, and tapping the row does nothing.
+ * The text sets the row's height, so edit mode only moves it over: the delete button stretches to the row's height.
+ */
 @Composable
 private fun PatternRow(pattern: PatternData, isEditing: Boolean, onOpen: () -> Unit, onDelete: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .height(IntrinsicSize.Min)
             .lightClickable(enabled = !isEditing, onClick = onOpen)
             .padding(vertical = 0.5f.gridUnitsAsDp()),
         verticalAlignment = Alignment.CenterVertically,
@@ -133,11 +138,12 @@ private fun PatternRow(pattern: PatternData, isEditing: Boolean, onOpen: () -> U
         if (isEditing) {
             Box(
                 modifier = Modifier
-                    .size(44.dp)
+                    .fillMaxHeight()
+                    .width(DELETE_SIZE_UNITS.gridUnitsAsDp())
                     .lightClickable(onClickLabel = "Delete ${pattern.name}", onClick = onDelete),
                 contentAlignment = Alignment.Center,
             ) {
-                LightIcon(LightIcons.DELETE, contentDescription = "Delete ${pattern.name}")
+                LightIcon(LightIcons.DELETE, size = DELETE_SIZE_UNITS, contentDescription = "Delete ${pattern.name}")
             }
         }
         Column {
@@ -146,3 +152,6 @@ private fun PatternRow(pattern: PatternData, isEditing: Boolean, onOpen: () -> U
         }
     }
 }
+
+/** The delete button's size, in grid units: about the name's height, smaller than the SDK's 2-unit default. */
+private const val DELETE_SIZE_UNITS = 1.25f
