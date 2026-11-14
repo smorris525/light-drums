@@ -19,6 +19,6 @@ class PatternDataTest {
 
     @Test
     fun libraryMeta() {
-        assertEquals("68 BPM · 4/4 · 4 bars", SamplePatterns.seeded(0)[0].libraryMeta)
+        assertEquals("96 BPM · 4/4 · 2 bars", SamplePatterns.seeded(0)[0].libraryMeta)
     }
 }

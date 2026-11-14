@@ -85,11 +85,11 @@ class PatternStoreTest {
     @Test
     fun duplicateCopiesUnderTheNextName() = runBlocking {
         store.seedIfNeeded()
-        val waltz = store.patterns.first().first { it.name == "Waltz" }
-        val copy = store.duplicate(waltz.uuid)!!
-        assertEquals("Waltz 2", copy.name)
-        assertEquals(waltz.steps, copy.steps)
-        assertNotEquals(waltz.uuid, copy.uuid)
+        val soul = store.patterns.first().first { it.name == "Soul" }
+        val copy = store.duplicate(soul.uuid)!!
+        assertEquals("Soul 2", copy.name)
+        assertEquals(soul.steps, copy.steps)
+        assertNotEquals(soul.uuid, copy.uuid)
         assertEquals(copy.uuid, store.patterns.first().last().uuid)
     }
 }

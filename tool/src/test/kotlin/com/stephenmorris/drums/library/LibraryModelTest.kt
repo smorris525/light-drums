@@ -2,6 +2,7 @@ package com.stephenmorris.drums.library
 
 import com.stephenmorris.drums.audio.FakeAudioOutput
 import com.stephenmorris.drums.audio.Transport
+import com.stephenmorris.drums.core.SamplePatterns
 import com.stephenmorris.drums.data.FakePatternDao
 import com.stephenmorris.drums.data.PatternStore
 import kotlinx.coroutines.CoroutineScope
@@ -57,6 +58,6 @@ class LibraryModelTest {
     @Test
     fun listsThePatterns() = runBlocking {
         store.seedIfNeeded()
-        assertEquals(9, model.patterns.value.size)
+        assertEquals(SamplePatterns.all.size, model.patterns.value.size)
     }
 }

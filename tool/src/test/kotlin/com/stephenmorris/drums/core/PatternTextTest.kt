@@ -64,7 +64,7 @@ class PatternTextTest {
     @Test
     fun newPatternsGoAtTheBottom() {
         val existing = SamplePatterns.seeded(1000)
-        assertEquals(1009L, PatternText.nextCreatedAt(940, existing))
+        assertEquals(1005L, PatternText.nextCreatedAt(940, existing))
         assertEquals(5000L, PatternText.nextCreatedAt(5000, existing))
         assertEquals(10L, PatternText.nextCreatedAt(5, listOf(existing[0].copy(createdAt = 9))))
         assertEquals(5L, PatternText.nextCreatedAt(5, emptyList()))

@@ -62,7 +62,7 @@ class KitExportTest {
             block.copyInto(mix, written, 0, minOf(block.size, mix.size - written))
             written += block.size
         }
-        File(File("build/kit-export").apply { mkdirs() }, "slow-rock-mix.wav").writeBytes(wav(mix, gain = 1f))
+        File(File("build/kit-export").apply { mkdirs() }, "funk-break-mix.wav").writeBytes(wav(mix, gain = 1f))
     }
 
     private fun wav(samples: FloatArray, gain: Float = 0.8f): ByteArray {
