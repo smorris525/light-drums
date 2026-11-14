@@ -1,3 +1,15 @@
+# Drums
+
+A step sequencer and drum pads for the Light Phone III.
+
+- Program patterns step by step, or play the pads live and record what you play.
+- Set the tempo, time signature, length and swing, with a metronome.
+- Every sound is synthesised on the phone. No samples are bundled, no network is used and no data leaves the device.
+
+The tool lives in the [`tool`](tool) module. [`tool/docs/spec.md`](tool/docs/spec.md) describes how it behaves. Everything else in this repository is Light's [light-sdk](https://github.com/lightphone/light-sdk), which this repo is a fork of. The SDK's own README follows.
+
+---
+
 # light-sdk
 or: a tool for building Tools
 
